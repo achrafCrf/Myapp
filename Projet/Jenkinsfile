@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "myjenkinsapp:${env.BUILD_NUMBER}"
+        DOCKERHUB_REPO = "lyazid22/myjenkinsapp"
+    }
+
+    stages {
+        
+        stage('Checkout') {
+            steps {
+                echo "📥 Cloning repository..."
+                git branch: 'main', url: 'https://github.com/USER/myapp.git'
+            }
+        }
+
+        stage('Install dependencies') {
+            steps {
+                echo "📦 Installing Python dependencies..."
+                sh 'pip install -r requirements.txt'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo "🧪 Running tests..."
+                sh 'pytest -q'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo "🐳 Building Docker image..."
+                sh "docker build -t ${DOCKER_IMAGE} ."
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo "📤 Pushing to Docker Hub..."
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                    sh "docker tag ${DOCKER_IMAGE} ${DOCKERHUB_REPO}:${env.BUILD_NUMBER}"
+                    sh "docker push ${DOCKERHUB_REPO}:${env.BUILD_NUMBER}"
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "🚀 Deploying (simulation)..."
+                sh "echo 'Application deployed successfully!'"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "🎉 Pipeline finished successfully"
+        }
+        failure {
+            echo "❌ Pipeline failed"
+        }
+    }
+}
