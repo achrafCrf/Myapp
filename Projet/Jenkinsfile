@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "📥 Cloning repository..."
-                git branch: 'main', url: 'https://github.com/USER/myapp.git'
+                git branch: 'main', url: 'https://github.com/achrafCrf/Myapp.git'
             }
         }
 
@@ -64,3 +64,4 @@ pipeline {
         }
     }
 }
+
